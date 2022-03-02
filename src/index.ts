@@ -1,5 +1,6 @@
 import express from 'express'
 import dotenv from 'dotenv'
+dotenv.config()
 import 'reflect-metadata'
 import { buildSchema } from 'type-graphql'
 import cookieParser from 'cookie-parser'
@@ -10,7 +11,11 @@ import {
 } from 'apollo-server-core'
 import { resolvers } from './resolvers'
 import { dbConnect } from './utils/mongo'
-dotenv.config()
+import Context from './types/context'
+import { verifyJwt } from './utils/jwt'
+import { User } from './schemas/userSchema'
+// console.log('public key:', process.env.PRIVATE_KEY)
+
 async function bootstrap() {
  // BUILD SCHEMA
  const schema = await buildSchema({
@@ -22,8 +27,16 @@ async function bootstrap() {
  // MAKE APOLLO SERVER
  const server = new ApolloServer({
   schema,
-  context: ctx => {
-   return ctx
+  context: (ctx: Context) => {
+   const context = ctx
+   //  console.log('token out here', ctx.req.headers.authorization)
+   if (ctx.req.headers.authorization) {
+    let token = ctx.req.headers.authorization.split(' ')[1]
+    const user = verifyJwt<User>(token)
+    console.log('user:', user)
+    context.user = user
+   }
+   return context
   },
   plugins: [
    process.env.NODE_ENV === 'production'
