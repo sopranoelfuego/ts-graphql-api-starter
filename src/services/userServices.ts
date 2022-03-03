@@ -1,14 +1,21 @@
 import { ApolloError } from 'apollo-server-core'
 import bcrypt from 'bcrypt'
-import { CreateUserInput, LoginInput, UserModel } from '../schemas/userSchema'
+import {
+ CreateUserInput,
+ LoginInput,
+ User,
+ userIdInput,
+ UserModel,
+} from '../schemas/userSchema'
 import Context from '../types/context'
+
 import { signJwt } from '../utils/jwt'
 
 class UserService {
  async createUser(input: CreateUserInput) {
   return UserModel.create(input)
  }
- async login(input: LoginInput, context: Context) {
+ async login(input: LoginInput) {
   const user = await UserModel.find().findByEmail(input?.email).lean()
   //   Check  the user
   if (!user) {
@@ -18,16 +25,22 @@ class UserService {
   if (!passwordIsValid) throw new ApolloError('wrong password')
   const token = signJwt(user)
 
-  // set a cookie for the jwt
-  //   context.res.cookie('accessToken', token, {
-  //    maxAge: 3.154e10, // 1 year
-  //    httpOnly: true,
-  //    domain: 'localhost',
-  //    path: '/',
-  //    sameSite: 'strict',
-  //    secure: process.env.NODE_ENV === 'production',
-  //   })
   return token
  }
+ async users() {
+  return await UserModel.find().lean()
+ }
+ async user(input: userIdInput) {
+  return await UserModel.findById(input).lean()
+ }
+ async update(input: CreateUserInput & { id: User['_id'] }) {
+  return await UserModel.findByIdAndUpdate(input?.id, input)
+ }
+ async delete(input: userIdInput) {
+  let del = await UserModel.findByIdAndDelete(input)
+  if (!del) return 'unsuccessfuly deleted..!!'
+  return 'successfull deleted'
+ }
 }
+
 export default UserService

@@ -14,13 +14,13 @@ import { dbConnect } from './utils/mongo'
 import Context from './types/context'
 import { verifyJwt } from './utils/jwt'
 import { User } from './schemas/userSchema'
-// console.log('public key:', process.env.PRIVATE_KEY)
+import authChecker from './utils/authChecker'
 
 async function bootstrap() {
  // BUILD SCHEMA
  const schema = await buildSchema({
   resolvers,
-  //   authChecker,
+  authChecker,
  })
  const app = express()
  app.use(cookieParser())
@@ -33,7 +33,6 @@ async function bootstrap() {
    if (ctx.req.headers.authorization) {
     let token = ctx.req.headers.authorization.split(' ')[1]
     const user = verifyJwt<User>(token)
-    console.log('user:', user)
     context.user = user
    }
    return context

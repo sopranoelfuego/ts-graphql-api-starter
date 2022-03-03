@@ -7,7 +7,7 @@ import {
  index,
 } from '@typegoose/typegoose'
 import { IsEmail, MaxLength, MinLength } from 'class-validator'
-import { Field, InputType, ObjectType } from 'type-graphql'
+import { Field, ID, InputType, ObjectType } from 'type-graphql'
 import bcrypt from 'bcrypt'
 import { AsQueryMethod } from '@typegoose/typegoose/lib/types'
 
@@ -72,4 +72,9 @@ export class LoginInput {
  email: string
  @Field(() => String)
  password: string
+}
+@InputType()
+export class userIdInput {
+ @Field(() => ID)
+ _id: string
 }
